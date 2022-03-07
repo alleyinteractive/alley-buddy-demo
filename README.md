@@ -1,10 +1,12 @@
 # WP Starter Project
 
 ## Project Overview
+
+`alley-buddy-demo` is a skeleton project for a [Buddy](https://buddy.works) webinar demonstration that Alley presented 2022-04-06.
+
 WP Starter Project is a skeleton for scaffolding a project incorporating Alley's best practices. It preps a conventional, single-site WordPress project destined for VIP and includes:
 * **File structure**: a general codebase,
 * **Buddy**: `.buddy/pull-requests.yml` for running checks against pull requests,
-* **Travis**: `.travis.yml` plus scripts for building and deploying,
 * **phpcs**: a project-wide ruleset based on the [Alley Coding Standard](https://github.com/alleyinteractive/alley-coding-standards),
 * **Composer**: commands for running `phpcs`, `phpcbf`, and `phpunit`, and
 * **Other Stuff**: `.editorconfig`, `.gitignore`, a changelog template, and a GitHub pull release template.
@@ -26,7 +28,6 @@ Though this codebase does not include a theme or functionality plugin, reference
 * `wp_starter_plugin` (Function prefix)
 
 If you add your functionality plugin to a directory other than `/plugins/`, i.e. `/client-mu-plugins/` or `/mu-plugins/`, replace the plugin path in the following files:
-* [`bin/before-script.sh`](https://github.com/alleyinteractive/wp-starter-project/blob/main/bin/before-script.sh)
 * [`.buddy/pull-requests.yml`](https://github.com/alleyinteractive/wp-starter-project/blob/main/.buddy/pull-requests.yml)
 * [`composer.json`](https://github.com/alleyinteractive/wp-starter-project/blob/main/composer.json)
 
@@ -34,15 +35,6 @@ Install `nvm` and the version of node specified in `.nvmrc` in both the plugin a
 
 Run `composer setup` to install `composer` and `npm` dependencies and run an initial build.
 
-### Plugin and Theme Integration
-
-Assuming you create a theme based off of the [wp-starter-theme](https://github.com/alleyinteractive/wp-starter-theme) and a plugin based off of the [wp-starter-plugin](https://github.com/alleyinteractive/wp-starter-plugin), you will need to remove some files from the theme and plugin that are replaced by versions in this repo that cover the entire project:
-
-* `(plugins|themes)/[name]/.gitignore` - Gitignore configuration is maintained at the project level in `wp-content/.gitignore`
-* `(plugins|themes)/[name]/.phpcs/.gitkeep` - PHPCS cache is maintained at the project level in `wp-content/.phpcs`
-* `(plugins|themes)/[name]/buddy.yml` - Buddy configuration is maintained at the project level in `wp-content/.buddy`
-* `(plugins|themes)/[name]/composer.json` - Composer dependencies for PR tests are maintained at the project level in `wp-content/composer.json`
-* `(plugins|themes)/[name]/composer.lock` - The Composer lockfile for dependencies for PR tests is maintained at the project level in `wp-content/composer.lock`
 
 ### PHPUnit
 
@@ -68,11 +60,6 @@ To get started with Buddy:
 	* Configure the Slack integration. You will need both the channel ID and the channel name. The channel ID can be obtained by configuring an action in Buddy's GUI and configuring the Slack notification for your channel of choice, then viewing the YAML for the action and copying the ID. Alternately, if you have a notification going to that channel already, you can copy it out of that project's configuration.
 * When you are done, you should be able to push your branch, create a pull request against the `production` branch, and Buddy should run the configuration in your `.buddy/pull-requests.yml` file automatically. Once this happens and is successful, configure branch protections to require the Buddy task to pass.
 
-### Travis
-
-Make changes to `.travis.yml` to suit your deployment requirements.
-* For a standalone site with one plugin and one theme, the find and replace operations performed above should be sufficient.
-* The node version of the build process is set in `.travis.yml`. If you need a different version of node, you will need to change this value. If you need multiple versions of node, you will need to use `nvm` to switch between them.
 
 ### PHP Sniffs
 
@@ -88,7 +75,3 @@ To fix errors with `phpcbf`, run:
 ### IDE Configuration
 
 To configure your IDE to work with the starter project, please refer to the IDE documentation on the Infosphere for either [PhpStorm](https://infosphere.alley.ws/production/IDE/PhpStorm/introduction.html) or [VS Code](https://infosphere.alley.ws/production/IDE/vscode.html).
-
-## To Do
-
-Ideas for enhancements and best practices are being logged on this project as [Github issues](https://github.com/alleyinteractive/wp-starter-project/issues). Feel free to create an issue or pick up an issue and iterate on the project!
