@@ -1,0 +1,43 @@
+{
+  "name": "alleyinteractive/wp-starter-project",
+  "description": "WP Starter Project",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Alley Interactive",
+      "email": "noreply@alleyinteractive.com"
+    }
+  ],
+  "require-dev": {
+    "alleyinteractive/alley-coding-standards": "^0.3.0",
+    "phpunit/phpunit": "7.5.*",
+    "yoast/phpunit-polyfills": "^1.0"
+  },
+  "scripts": {
+    "phpcbf": [
+      "composer phpcbf:plugin",
+      "composer phpcbf:theme"
+    ],
+    "phpcbf:plugin": "cd plugins/wp-starter-plugin && phpcbf .",
+    "phpcbf:theme": "cd themes/wp-starter-theme && phpcbf .",
+    "phpcs": [
+      "composer phpcs:plugin",
+      "composer phpcs:theme"
+    ],
+    "phpcs:plugin": "cd plugins/wp-starter-plugin && phpcs . --basepath=.",
+    "phpcs:theme": "cd themes/wp-starter-theme && phpcs . --basepath=.",
+    "phpunit": [
+      "composer phpunit:plugin",
+      "composer phpunit:theme"
+    ],
+    "phpunit:plugin": "cd plugins/wp-starter-plugin && phpunit",
+    "phpunit:theme": "cd themes/wp-starter-theme && phpunit",
+    "setup": [
+      "# Running composer install at the root...",
+      "composer install",
+      "# Installing node dependencies and running builds on each plugin and theme...",
+      ". $NVM_DIR/nvm.sh && cd plugins/wp-starter-plugin && nvm use && npm ci && npm run build",
+      ". $NVM_DIR/nvm.sh && cd themes/wp-starter-theme && nvm use && npm ci && npm run build"
+    ]
+  }
+}

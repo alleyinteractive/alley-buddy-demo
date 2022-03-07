@@ -1,0 +1,69 @@
+# Travis CI (MIT License) configuration file for WP Starter Project
+# @link https://travis-ci.org/
+# For automating deploys on the VIP Go platform only.
+# For all other operations, use buddy.yml.
+
+# Bionic image has node versions 8 and 10-13 pre-installed.
+dist: bionic
+
+# Declare project language.
+# @link https://docs.travis-ci.com/user/languages/javascript-with-nodejs/
+language: node_js
+
+# Node version. This should match the version in your package.json files.
+node_js:
+  - 16
+
+# This "ignore" directive prevents Travis from processing branches with
+# a -built suffix, thus avoiding endless loops.
+# REQUIRED: If you're amending an existing config, the following
+# line is required.
+if: branch =~ ^.*(?<!-built)$
+
+# VIP branches only.
+branches:
+  only:
+    - develop
+    - preprod
+    - master
+
+# Define global variables.
+env:
+  global:
+    - PLUGIN_SLUG=wp-starter-plugin
+    - THEME_SLUG=wp-starter-theme
+
+# Git setup.
+git:
+  depth: 1
+  quiet: true
+
+# VIP asset build job only.
+jobs:
+  include:
+    - name: 'Asset Building & Deployment (VIP Only)'
+      if: repo=~/^wpcomvip\/.*$/
+
+# Prepare your environment for building.
+# Failures in this section will result in build status 'errored'.
+before_script:
+  # Paths and variables are set here.
+  - source bin/before-script.sh
+
+# Run build script commands. All commands must exit with code 0 on success. Anything
+# else is considered failure. Failures here do not stop the build.
+script:
+  # Build assets.
+  - bash bin/script-npm-build.sh $PLUGIN_DIR
+  - bash bin/script-npm-build.sh $THEME_DIR
+
+# Deploy only after a successful build.
+after_success:
+  - bash bin/after-success.sh
+
+# Receive notifications for build results.
+# @link http://docs.travis-ci.com/user/notifications/#Email-notifications
+# @link https://docs.travis-ci.com/user/notifications/#configuring-slack-notifications
+notifications:
+  email: false
+  slack: false

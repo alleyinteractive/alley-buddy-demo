@@ -1,0 +1,403 @@
+- pipeline: "Pull Request Tests"
+  trigger_mode: "ON_EVERY_PUSH"
+  ref_name: "refs/pull/*"
+  ref_type: "WILDCARD"
+  priority: "NORMAL"
+  target_site_url: "https://www.wp-starter-project.com"
+  fetch_all_refs: true
+  fail_on_prepare_env_warning: true
+  trigger_condition: "ALWAYS"
+  actions:
+    - action: "Gitignored files check"
+      type: "BUILD"
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "if [[ ! -z $(git ls-files -i --exclude-standard) ]]; then exit 1; fi"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+    - action: "Check for git conflicts"
+      type: "BUILD"
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "! git grep -E \"<<<<<<< |>>>>>>> \" -- './*' ':!buddy.yml' ':!.buddy/*'"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+    - action: "Composer install"
+      type: "BUILD"
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "composer install -q"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "Prepare WordPress test environment"
+      type: "BUILD"
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "# Clear out any previously cached testing folders."
+        - "rm -rf .buddy-tests; mkdir -p .buddy-tests"
+        - "rm -f object-cache.php"
+        - ""
+        - "# Install tests"
+        - "# Set up the WordPress installation, skipping database creation"
+        - "bash <(curl -s \"https://raw.githubusercontent.com/wp-cli/sample-plugin/master/bin/install-wp-tests.sh\") wordpress_test root root mysql latest true"
+        - ""
+        - "# Wire up object-cache and inform WordPress config about the server location"
+        - "echo 'global $memcached_servers;' >> ${WP_TESTS_DIR}/wp-tests-config.php # Notably requires setting it globally"
+        - "echo '$memcached_servers = array(\"memcached:11211\");' >> ${WP_TESTS_DIR}/wp-tests-config.php # See https://github.com/Automattic/wp-memcached/blob/master/readme.txt"
+        - ""
+        - "# Ensure mu-plugins is cleared out."
+        - "rm -rf mu-plugins*"
+        - ""
+        - "# Install VIP Go MU Plugins."
+        - "# Note that these are cloned to mu-plugins-vip to prevent interference during wordpress_test installation"
+        - "# See: https://aha.alley.ws/questions/how-can-i-prevent-the-wordpress-database-error-m"
+        - "git clone --depth=1 https://github.com/Automattic/vip-go-mu-plugins-built.git mu-plugins-vip"
+        - ""
+        - "# Rsync wp-content to ${WP_CORE_DIR} for testing"
+        - "rm -rf \"${WP_CORE_DIR}/wp-content\""
+        - "rsync -a \\"
+        - "\t--exclude=.git \\"
+        - "\t--exclude=.npm \\"
+        - "\t--exclude=.buddy-tests \\"
+        - "\t--exclude=node_modules \\"
+        - "\t. \"${WP_CORE_DIR}/wp-content\""
+        - ""
+        - "# Wire up object cache."
+        - "curl -s https://raw.githubusercontent.com/Automattic/wp-memcached/master/object-cache.php > ${WP_CONTENT_DIR}/object-cache.php"
+        - ""
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+    - action: "phpunit theme"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "# Install database tables."
+        - "[[ $WP_MULTISITE -eq 1 ]] && WP_MULTISITE_STRING=\"run_ms_tests\" || WP_MULTISITE_STRING=\"no_ms_tests\""
+        - "php ${WP_TESTS_DIR}/includes/install.php ${WP_TESTS_DIR}/wp-tests-config.php $WP_MULTISITE_STRING"
+        - ""
+        - "# Add VIP mu plugins and config."
+        - "echo \"require_once ABSPATH . 'wp-content/vip-config/vip-config.php';\" >> ${WP_TESTS_DIR}/wp-tests-config.php"
+        - "cd ${WP_CORE_DIR}/wp-content"
+        - "mv -f mu-plugins-vip mu-plugins 2>/dev/null || echo 'mu-plugins already moved'"
+        - ""
+        - "# Kill plugins that are not very nice to PHPUnit."
+        - "rm -f mu-plugins/vaultpress.php"
+        - "rm -f mu-plugins/wordpress-importer.php"
+        - "rm -f mu-plugins/rewrite-rules-inspector.php"
+        - ""
+        - "composer phpunit:theme"
+      setup_commands:
+        - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
+      services:
+        - type: "MYSQL"
+          version: "5.7"
+          connection:
+            host: "mysql"
+            port: 3306
+            user: "root"
+            password: "root"
+            db: "wordpress_test"
+        - type: "MEMCACHED"
+          version: "1.5.6"
+          connection:
+            host: "memcached"
+            port: 11211
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "phpunit plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "# Install database tables."
+        - "[[ $WP_MULTISITE -eq 1 ]] && WP_MULTISITE_STRING=\"run_ms_tests\" || WP_MULTISITE_STRING=\"no_ms_tests\""
+        - "php ${WP_TESTS_DIR}/includes/install.php ${WP_TESTS_DIR}/wp-tests-config.php $WP_MULTISITE_STRING"
+        - ""
+        - "# Add VIP mu plugins and config."
+        - "echo \"require_once ABSPATH . 'wp-content/vip-config/vip-config.php';\" >> ${WP_TESTS_DIR}/wp-tests-config.php"
+        - "cd ${WP_CORE_DIR}/wp-content"
+        - "mv -f mu-plugins-vip mu-plugins 2>/dev/null || echo 'mu-plugins already moved'"
+        - ""
+        - "# Kill plugins that are not very nice to PHPUnit."
+        - "rm -f mu-plugins/vaultpress.php"
+        - "rm -f mu-plugins/wordpress-importer.php"
+        - "rm -f mu-plugins/rewrite-rules-inspector.php"
+        - ""
+        - "composer phpunit:plugin"
+      setup_commands:
+        - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
+      services:
+        - type: "MYSQL"
+          version: "5.7"
+          connection:
+            host: "mysql"
+            port: 3306
+            user: "root"
+            password: "root"
+            db: "wordpress_test"
+        - type: "MEMCACHED"
+          version: "1.5.6"
+          connection:
+            host: "memcached"
+            port: 11211
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+    - action: "composer phpcs: plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "composer phpcs:plugin"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/wp-starter-plugin"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "composer phpcs: theme"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "alleyops/ci-resources"
+      docker_image_tag: "7.4-fpm-wp"
+      execute_commands:
+        - "composer phpcs:theme"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "themes/wp-starter-theme"
+      shell: "BASH"
+    - action: "npm audit: plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-plugin"
+        - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/wp-starter-project/.npm; fi"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "npm audit: theme"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd themes/wp-starter-theme"
+        - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/wp-starter-project/.npm; fi"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+    - action: "npm ci: update plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-plugin"
+        - "npm ci --cache /buddy/wp-starter-project/.npm"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "npm ci: update theme"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd themes/wp-starter-theme"
+        - "npm ci --cache /buddy/wp-starter-project/.npm"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
+    - action: "npm run lint: plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-plugin"
+        - "npm run lint"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/wp-starter-plugin"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "npm run lint: theme"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-theme"
+        - "npm run lint"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/wp-starter-theme"
+      shell: "BASH"
+    - action: "npm run stylelint: plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-plugin"
+        - "npm run stylelint"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/wp-starter-plugin"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "npm run stylelint: theme"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-theme"
+        - "npm run stylelint"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/wp-starter-theme"
+      shell: "BASH"
+    - action: "npm run test: plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-plugin"
+        - "npm run test"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/wp-starter-plugin"
+      shell: "BASH"
+    - action: "npm run build: plugin"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd plugins/wp-starter-plugin"
+        - "npm run build"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/wp-starter-plugin"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "npm run build: theme"
+      type: "BUILD"
+      disabled: true
+      working_directory: "/buddy/wp-starter-project"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd themes/wp-starter-theme"
+        - "npm run build"
+      volume_mappings:
+        - "/:/buddy/wp-starter-project"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "themes/wp-starter-theme"
+      shell: "BASH"
+    - action: "Send failure notification to CHANNEL_NAME_HERE channel"
+      type: "SLACK"
+      trigger_time: "ON_FAILURE"
+      disabled: true
+      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
+      blocks: "[{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Failed execution:* <$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pipeline:* <$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pull Request:* <$BUDDY_SCM_URL/pull/$BUDDY_EXECUTION_PULL_REQUEST_NO|#$BUDDY_EXECUTION_PULL_REQUEST_NO>\"},{\"type\":\"mrkdwn\",\"text\":\"*Project:* <$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>\"}]}]"
+      channel: "CHANNEL_ID_HERE"
+      channel_name: "CHANNEL_NAME_HERE"
+      trigger_condition: "ALWAYS"
+      integration_hash: "5fd26dc7da4ad10159c251b4"
+    - action: "Send back to normal notification to CHANNEL_NAME_HERE channel"
+      type: "SLACK"
+      trigger_time: "ON_BACK_TO_SUCCESS"
+      disabled: true
+      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
+      blocks: "[{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Successful execution:* <$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pipeline:* <$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pull Request:* <$BUDDY_SCM_URL/pull/$BUDDY_EXECUTION_PULL_REQUEST_NO|#$BUDDY_EXECUTION_PULL_REQUEST_NO>\"},{\"type\":\"mrkdwn\",\"text\":\"*Project:* <$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>\"}]}]"
+      channel: "CHANNEL_ID_HERE"
+      channel_name: "CHANNEL_NAME_HERE"
+      trigger_condition: "ALWAYS"
+      integration_hash: "5fd26dc7da4ad10159c251b4"
+    - action: "Send warning notification to CHANNEL_NAME_HERE channel"
+      type: "SLACK"
+      trigger_time: "ON_WARNING"
+      disabled: true
+      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
+      blocks: "[{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Warning on execution:* <$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pipeline:* <$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pull Request:* <$BUDDY_SCM_URL/pull/$BUDDY_EXECUTION_PULL_REQUEST_NO|#$BUDDY_EXECUTION_PULL_REQUEST_NO>\"},{\"type\":\"mrkdwn\",\"text\":\"*Project:* <$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>\"}]}]"
+      channel: "CHANNEL_ID_HERE"
+      channel_name: "CHANNEL_NAME_HERE"
+      trigger_condition: "ALWAYS"
+      integration_hash: "5fd26dc7da4ad10159c251b4"
+  variables:
+    - key: "COMPOSER_HOME"
+      value: "/buddy/wp-starter-project/.composer"
+    - key: "WP_CORE_DIR"
+      value: "/buddy/wp-starter-project/.buddy-tests/wordpress"
+    - key: "WP_MULTISITE"
+      value: "0"
+    - key: "WP_TESTS_SKIP_INSTALL"
+      value: "1"
+    - key: "WP_TESTS_DIR"
+      value: "/buddy/wp-starter-project/.buddy-tests/wordpress-tests-lib"
