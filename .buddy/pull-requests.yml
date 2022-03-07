@@ -3,48 +3,48 @@
   ref_name: "refs/pull/*"
   ref_type: "WILDCARD"
   priority: "NORMAL"
-  target_site_url: "https://www.wp-starter-project.com"
+  target_site_url: "https://www.alley-buddy-demo.com"
   fetch_all_refs: true
   fail_on_prepare_env_warning: true
   trigger_condition: "ALWAYS"
   actions:
     - action: "Gitignored files check"
       type: "BUILD"
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
         - "if [[ ! -z $(git ls-files -i --exclude-standard) ]]; then exit 1; fi"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
     - action: "Check for git conflicts"
       type: "BUILD"
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
         - "! git grep -E \"<<<<<<< |>>>>>>> \" -- './*' ':!buddy.yml' ':!.buddy/*'"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
     - action: "Composer install"
       type: "BUILD"
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
         - "composer install -q"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
       run_next_parallel: true
     - action: "Prepare WordPress test environment"
       type: "BUILD"
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
@@ -81,13 +81,13 @@
         - "curl -s https://raw.githubusercontent.com/Automattic/wp-memcached/master/object-cache.php > ${WP_CONTENT_DIR}/object-cache.php"
         - ""
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
     - action: "phpunit theme"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
@@ -123,14 +123,14 @@
             host: "memcached"
             port: 11211
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
       run_next_parallel: true
     - action: "phpunit plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
@@ -166,19 +166,19 @@
             host: "memcached"
             port: 11211
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
     - action: "composer phpcs: plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
         - "composer phpcs:plugin"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/wp-starter-plugin"
@@ -187,13 +187,13 @@
     - action: "composer phpcs: theme"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
       execute_commands:
         - "composer phpcs:theme"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "themes/wp-starter-theme"
@@ -201,68 +201,68 @@
     - action: "npm audit: plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-plugin"
-        - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/wp-starter-project/.npm; fi"
+        - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/alley-buddy-demo/.npm; fi"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
       run_next_parallel: true
     - action: "npm audit: theme"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd themes/wp-starter-theme"
-        - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/wp-starter-project/.npm; fi"
+        - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/alley-buddy-demo/.npm; fi"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
     - action: "npm ci: update plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-plugin"
-        - "npm ci --cache /buddy/wp-starter-project/.npm"
+        - "npm ci --cache /buddy/alley-buddy-demo/.npm"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
       run_next_parallel: true
     - action: "npm ci: update theme"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd themes/wp-starter-theme"
-        - "npm ci --cache /buddy/wp-starter-project/.npm"
+        - "npm ci --cache /buddy/alley-buddy-demo/.npm"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
     - action: "npm run lint: plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-plugin"
         - "npm run lint"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/wp-starter-plugin"
@@ -271,14 +271,14 @@
     - action: "npm run lint: theme"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-theme"
         - "npm run lint"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/wp-starter-theme"
@@ -286,14 +286,14 @@
     - action: "npm run stylelint: plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-plugin"
         - "npm run stylelint"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/wp-starter-plugin"
@@ -302,14 +302,14 @@
     - action: "npm run stylelint: theme"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-theme"
         - "npm run stylelint"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/wp-starter-theme"
@@ -317,14 +317,14 @@
     - action: "npm run test: plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-plugin"
         - "npm run test"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/wp-starter-plugin"
@@ -332,14 +332,14 @@
     - action: "npm run build: plugin"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd plugins/wp-starter-plugin"
         - "npm run build"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/wp-starter-plugin"
@@ -348,14 +348,14 @@
     - action: "npm run build: theme"
       type: "BUILD"
       disabled: true
-      working_directory: "/buddy/wp-starter-project"
+      working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
         - "cd themes/wp-starter-theme"
         - "npm run build"
       volume_mappings:
-        - "/:/buddy/wp-starter-project"
+        - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "themes/wp-starter-theme"
@@ -392,12 +392,12 @@
       integration_hash: "5fd26dc7da4ad10159c251b4"
   variables:
     - key: "COMPOSER_HOME"
-      value: "/buddy/wp-starter-project/.composer"
+      value: "/buddy/alley-buddy-demo/.composer"
     - key: "WP_CORE_DIR"
-      value: "/buddy/wp-starter-project/.buddy-tests/wordpress"
+      value: "/buddy/alley-buddy-demo/.buddy-tests/wordpress"
     - key: "WP_MULTISITE"
       value: "0"
     - key: "WP_TESTS_SKIP_INSTALL"
       value: "1"
     - key: "WP_TESTS_DIR"
-      value: "/buddy/wp-starter-project/.buddy-tests/wordpress-tests-lib"
+      value: "/buddy/alley-buddy-demo/.buddy-tests/wordpress-tests-lib"
