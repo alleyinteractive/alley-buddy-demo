@@ -3,7 +3,7 @@
   ref_name: "refs/pull/*"
   ref_type: "WILDCARD"
   priority: "NORMAL"
-  target_site_url: "https://www.alley-buddy-demo.com"
+  target_site_url: "https://alley.co"
   fetch_all_refs: true
   fail_on_prepare_env_warning: true
   trigger_condition: "ALWAYS"
@@ -86,7 +86,6 @@
       shell: "BASH"
     - action: "phpunit theme"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
@@ -129,7 +128,6 @@
       run_next_parallel: true
     - action: "phpunit plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
@@ -171,7 +169,6 @@
       shell: "BASH"
     - action: "composer phpcs: plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
@@ -181,12 +178,11 @@
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/wp-starter-plugin"
+        - "plugins/example-plugin"
       shell: "BASH"
       run_next_parallel: true
     - action: "composer phpcs: theme"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "alleyops/ci-resources"
       docker_image_tag: "7.4-fpm-wp"
@@ -196,16 +192,15 @@
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "themes/wp-starter-theme"
+        - "themes/example-theme"
       shell: "BASH"
     - action: "npm audit: plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-plugin"
+        - "cd plugins/example-plugin"
         - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/alley-buddy-demo/.npm; fi"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
@@ -214,12 +209,11 @@
       run_next_parallel: true
     - action: "npm audit: theme"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd themes/wp-starter-theme"
+        - "cd themes/example-theme"
         - "if [[ -f package.json ]]; then npm audit --audit-level=high --production --cache /buddy/alley-buddy-demo/.npm; fi"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
@@ -227,12 +221,11 @@
       shell: "BASH"
     - action: "npm ci: update plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-plugin"
+        - "cd plugins/example-plugin"
         - "npm ci --cache /buddy/alley-buddy-demo/.npm"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
@@ -241,12 +234,11 @@
       run_next_parallel: true
     - action: "npm ci: update theme"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd themes/wp-starter-theme"
+        - "cd themes/example-theme"
         - "npm ci --cache /buddy/alley-buddy-demo/.npm"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
@@ -254,142 +246,105 @@
       shell: "BASH"
     - action: "npm run lint: plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-plugin"
+        - "cd plugins/examle-plugin"
         - "npm run lint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/wp-starter-plugin"
+        - "plugins/example-plugin"
       shell: "BASH"
       run_next_parallel: true
     - action: "npm run lint: theme"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-theme"
+        - "cd plugins/example-theme"
         - "npm run lint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/wp-starter-theme"
+        - "plugins/example-theme"
       shell: "BASH"
     - action: "npm run stylelint: plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-plugin"
+        - "cd plugins/example-plugin"
         - "npm run stylelint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/wp-starter-plugin"
+        - "plugins/example-plugin"
       shell: "BASH"
       run_next_parallel: true
     - action: "npm run stylelint: theme"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-theme"
+        - "cd plugins/example-theme"
         - "npm run stylelint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/wp-starter-theme"
+        - "plugins/example-theme"
       shell: "BASH"
     - action: "npm run test: plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-plugin"
+        - "cd plugins/example-plugin"
         - "npm run test"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/wp-starter-plugin"
+        - "plugins/example-plugin"
       shell: "BASH"
     - action: "npm run build: plugin"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/wp-starter-plugin"
+        - "cd plugins/example-plugin"
         - "npm run build"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/wp-starter-plugin"
+        - "plugins/example-plugin"
       shell: "BASH"
       run_next_parallel: true
     - action: "npm run build: theme"
       type: "BUILD"
-      disabled: true
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd themes/wp-starter-theme"
+        - "cd themes/example-theme"
         - "npm run build"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "themes/wp-starter-theme"
+        - "themes/example-theme"
       shell: "BASH"
-    - action: "Send failure notification to CHANNEL_NAME_HERE channel"
-      type: "SLACK"
-      trigger_time: "ON_FAILURE"
-      disabled: true
-      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
-      blocks: "[{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Failed execution:* <$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pipeline:* <$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pull Request:* <$BUDDY_SCM_URL/pull/$BUDDY_EXECUTION_PULL_REQUEST_NO|#$BUDDY_EXECUTION_PULL_REQUEST_NO>\"},{\"type\":\"mrkdwn\",\"text\":\"*Project:* <$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>\"}]}]"
-      channel: "CHANNEL_ID_HERE"
-      channel_name: "CHANNEL_NAME_HERE"
-      trigger_condition: "ALWAYS"
-      integration_hash: "5fd26dc7da4ad10159c251b4"
-    - action: "Send back to normal notification to CHANNEL_NAME_HERE channel"
-      type: "SLACK"
-      trigger_time: "ON_BACK_TO_SUCCESS"
-      disabled: true
-      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
-      blocks: "[{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Successful execution:* <$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pipeline:* <$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pull Request:* <$BUDDY_SCM_URL/pull/$BUDDY_EXECUTION_PULL_REQUEST_NO|#$BUDDY_EXECUTION_PULL_REQUEST_NO>\"},{\"type\":\"mrkdwn\",\"text\":\"*Project:* <$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>\"}]}]"
-      channel: "CHANNEL_ID_HERE"
-      channel_name: "CHANNEL_NAME_HERE"
-      trigger_condition: "ALWAYS"
-      integration_hash: "5fd26dc7da4ad10159c251b4"
-    - action: "Send warning notification to CHANNEL_NAME_HERE channel"
-      type: "SLACK"
-      trigger_time: "ON_WARNING"
-      disabled: true
-      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
-      blocks: "[{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Warning on execution:* <$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pipeline:* <$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>\"},{\"type\":\"mrkdwn\",\"text\":\"*Pull Request:* <$BUDDY_SCM_URL/pull/$BUDDY_EXECUTION_PULL_REQUEST_NO|#$BUDDY_EXECUTION_PULL_REQUEST_NO>\"},{\"type\":\"mrkdwn\",\"text\":\"*Project:* <$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>\"}]}]"
-      channel: "CHANNEL_ID_HERE"
-      channel_name: "CHANNEL_NAME_HERE"
-      trigger_condition: "ALWAYS"
-      integration_hash: "5fd26dc7da4ad10159c251b4"
   variables:
     - key: "COMPOSER_HOME"
       value: "/buddy/alley-buddy-demo/.composer"

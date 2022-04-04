@@ -17,4 +17,4 @@ None.
 
 ## Ticket(s)
 
-- https://alleyinteractive.atlassian.net/browse/WP-STARTER-PROJECT-
+- None

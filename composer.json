@@ -1,11 +1,11 @@
 {
-  "name": "alleyinteractive/wp-starter-project",
-  "description": "WP Starter Project",
+  "name": "alleyinteractive/alley-buddy-demo",
+  "description": "Alley Buddy Demo",
   "type": "project",
   "authors": [
     {
-      "name": "Alley Interactive",
-      "email": "noreply@alleyinteractive.com"
+      "name": "Alley",
+      "email": "info@alley.co"
     }
   ],
   "require-dev": {
@@ -18,26 +18,26 @@
       "composer phpcbf:plugin",
       "composer phpcbf:theme"
     ],
-    "phpcbf:plugin": "cd plugins/wp-starter-plugin && phpcbf .",
-    "phpcbf:theme": "cd themes/wp-starter-theme && phpcbf .",
+    "phpcbf:plugin": "cd plugins/example-plugin && phpcbf .",
+    "phpcbf:theme": "cd themes/example-theme && phpcbf .",
     "phpcs": [
       "composer phpcs:plugin",
       "composer phpcs:theme"
     ],
-    "phpcs:plugin": "cd plugins/wp-starter-plugin && phpcs . --basepath=.",
-    "phpcs:theme": "cd themes/wp-starter-theme && phpcs . --basepath=.",
+    "phpcs:plugin": "cd plugins/example-plugin && phpcs . --basepath=.",
+    "phpcs:theme": "cd themes/example-theme && phpcs . --basepath=.",
     "phpunit": [
       "composer phpunit:plugin",
       "composer phpunit:theme"
     ],
-    "phpunit:plugin": "cd plugins/wp-starter-plugin && phpunit",
-    "phpunit:theme": "cd themes/wp-starter-theme && phpunit",
+    "phpunit:plugin": "cd plugins/example-plugin && phpunit",
+    "phpunit:theme": "cd themes/example-theme && phpunit",
     "setup": [
       "# Running composer install at the root...",
       "composer install",
       "# Installing node dependencies and running builds on each plugin and theme...",
-      ". $NVM_DIR/nvm.sh && cd plugins/wp-starter-plugin && nvm use && npm ci && npm run build",
-      ". $NVM_DIR/nvm.sh && cd themes/wp-starter-theme && nvm use && npm ci && npm run build"
+      ". $NVM_DIR/nvm.sh && cd plugins/example-plugin && nvm use && npm ci && npm run build",
+      ". $NVM_DIR/nvm.sh && cd themes/example-theme && nvm use && npm ci && npm run build"
     ]
   }
 }
