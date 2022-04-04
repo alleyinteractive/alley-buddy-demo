@@ -39,5 +39,10 @@
       ". $NVM_DIR/nvm.sh && cd plugins/example-plugin && nvm use && npm ci && npm run build",
       ". $NVM_DIR/nvm.sh && cd themes/example-theme && nvm use && npm ci && npm run build"
     ]
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   }
 }
