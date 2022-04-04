@@ -1,4 +1,4 @@
-# Alley Buddy Demo
+# Alley Buddy Demo!
 
 ## Project Overview
 
