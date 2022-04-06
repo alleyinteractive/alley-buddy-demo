@@ -81,7 +81,7 @@
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
-    - action: "phpunit theme"
+    - action: "phpunit plugin"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/wordpress"
@@ -92,8 +92,9 @@
         - "php ${WP_TESTS_DIR}/includes/install.php ${WP_TESTS_DIR}/wp-tests-config.php $WP_MULTISITE_STRING"
         - ""
         - "cd ${WP_CORE_DIR}/wp-content"
-        - "composer phpunit:theme"
+        - "composer phpunit:plugin"
       setup_commands:
+        - "pecl install memcache-4.0.5.2 memcached redis"
         - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
         - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       services:
@@ -115,7 +116,7 @@
       trigger_condition: "ALWAYS"
       shell: "BASH"
       run_next_parallel: true
-    - action: "phpunit plugin"
+    - action: "phpunit theme"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
       docker_image_name: "library/wordpress"
@@ -126,8 +127,9 @@
         - "php ${WP_TESTS_DIR}/includes/install.php ${WP_TESTS_DIR}/wp-tests-config.php $WP_MULTISITE_STRING"
         - ""
         - "cd ${WP_CORE_DIR}/wp-content"
-        - "composer phpunit:plugin"
+        - "composer phpunit:theme"
       setup_commands:
+        - "pecl install memcache-4.0.5.2 memcached redis"
         - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
         - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       services:
