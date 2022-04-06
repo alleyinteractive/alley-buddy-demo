@@ -17,16 +17,18 @@ module.exports = (env, { mode }) => ({
 
   // Dynamically produce entries from the slotfills index file and all blocks.
   entry: glob
-    .sync('./blocks/**/index.js*')
+    .sync('./blocks/**/index.*')
     .reduce((acc, item) => {
       const entry = item
         .replace('./blocks/', '')
+        .replace('/index.tsx', '')
         .replace('/index.jsx', '')
+        .replace('/index.ts', '')
         .replace('/index.js', '');
       acc[entry] = item;
       return acc;
     }, {
-      slotfills: './slotfills/index.js',
+      slotfills: './slotfills/index.ts',
     }),
 
   // Configure loaders based on extension.
@@ -34,13 +36,8 @@ module.exports = (env, { mode }) => ({
     rules: [
       {
         exclude: /node_modules/,
-        test: /.jsx?$/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            cacheDirectory: true,
-          },
-        },
+        test: /.(j|t)sx?$/,
+        use: 'ts-loader',
       },
       {
         exclude: /node_modules/,
@@ -75,7 +72,7 @@ module.exports = (env, { mode }) => ({
     alias: {
       '@': path.resolve(__dirname),
     },
-    extensions: ['.js', '.jsx'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
   },
 
   // Cache the generated webpack modules and chunks to improve build speed.
