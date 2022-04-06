@@ -94,6 +94,7 @@
         - "cd ${WP_CORE_DIR}/wp-content"
         - "composer phpunit:plugin"
       setup_commands:
+        - "apt update && apt install -y libzip-dev libmemcached-dev"
         - "pecl install memcache-4.0.5.2 memcached redis"
         - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
         - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
@@ -129,6 +130,7 @@
         - "cd ${WP_CORE_DIR}/wp-content"
         - "composer phpunit:theme"
       setup_commands:
+        - "apt update && apt install -y libzip-dev libmemcached-dev"
         - "pecl install memcache-4.0.5.2 memcached redis"
         - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
         - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
