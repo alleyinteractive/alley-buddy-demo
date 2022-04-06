@@ -239,13 +239,13 @@
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/example-theme"
+        - "cd themes/example-theme"
         - "npm run lint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/example-theme"
+        - "themes/example-theme"
       shell: "BASH"
     - action: "npm run stylelint: plugin"
       type: "BUILD"
@@ -268,13 +268,13 @@
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/example-theme"
+        - "cd themes/example-theme"
         - "npm run stylelint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/example-theme"
+        - "themes/example-theme"
       shell: "BASH"
     - action: "npm run test: plugin"
       type: "BUILD"
