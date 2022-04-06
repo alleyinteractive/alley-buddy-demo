@@ -1,3 +1,6 @@
+// The type definitions for @wordpress/core-data aren't complete,
+// and they don't include useEntityProp.
+// @ts-ignore
 import { useEntityProp } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 import { cloneDeep } from 'lodash';
@@ -14,7 +17,10 @@ import { cloneDeep } from 'lodash';
  *                          Defaults to the ID of the current post.
  * @returns {array} An array containing an object representing postmeta and an update function.
  */
-const usePostMeta = (postType = null, postId = null) => {
+export default function usePostMeta(postType: string = null, postId: number = null): [
+  value: any,
+  setValue: (newValue: any) => void,
+] {
   // Ensures that we have a post type, since we need it as an argument to useEntityProp.
   const type = useSelect((select) => postType || select('core/editor').getCurrentPostType(), []);
 
@@ -40,9 +46,7 @@ const usePostMeta = (postType = null, postId = null) => {
    * functionality here as a catch-all on updates.
    * @param {object} next - The new value for meta.
    */
-  const setMetaSafe = (next) => setMeta(cloneDeep(next));
+  const setMetaSafe = (next: any) => setMeta(cloneDeep(next));
 
   return [meta, setMetaSafe];
-};
-
-export default usePostMeta;
+}

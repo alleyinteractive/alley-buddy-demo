@@ -1,7 +1,6 @@
 import { TextControl } from '@wordpress/components';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
 import { __ } from '@wordpress/i18n';
-import React from 'react';
 
 // Services.
 import usePostMetaValue from '@/hooks/use-post-meta-value';
