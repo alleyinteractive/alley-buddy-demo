@@ -43,7 +43,6 @@
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
-      run_next_parallel: true
     - action: "composer phpcs: plugin"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
