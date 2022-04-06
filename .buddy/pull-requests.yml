@@ -74,6 +74,9 @@
         - "# Wire up object cache."
         - "curl -s https://raw.githubusercontent.com/Automattic/wp-memcached/master/object-cache.php > ${WP_CONTENT_DIR}/object-cache.php"
         - ""
+      setup_commands:
+        - "apt update"
+        - "apt install -y rsync subversion"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
