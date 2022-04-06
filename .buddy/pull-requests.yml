@@ -11,8 +11,8 @@
     - action: "Gitignored files check"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "if [[ ! -z $(git ls-files -i --exclude-standard) ]]; then exit 1; fi"
       volume_mappings:
@@ -22,8 +22,8 @@
     - action: "Check for git conflicts"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "! git grep -E \"<<<<<<< |>>>>>>> \" -- './*' ':!buddy.yml' ':!.buddy/*'"
       volume_mappings:
@@ -33,20 +33,52 @@
     - action: "Composer install"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "composer install -q"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
+    - action: "composer phpcs: plugin"
+      type: "BUILD"
+      working_directory: "/buddy/alley-buddy-demo"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
+      execute_commands:
+        - "composer phpcs:plugin"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
+      volume_mappings:
+        - "/:/buddy/alley-buddy-demo"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/example-plugin"
+      shell: "BASH"
       run_next_parallel: true
+    - action: "composer phpcs: theme"
+      type: "BUILD"
+      working_directory: "/buddy/alley-buddy-demo"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
+      execute_commands:
+        - "composer phpcs:theme"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
+      volume_mappings:
+        - "/:/buddy/alley-buddy-demo"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "themes/example-theme"
+      shell: "BASH"
     - action: "Prepare WordPress test environment"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "# Clear out any previously cached testing folders."
         - "rm -rf .buddy-tests; mkdir -p .buddy-tests"
@@ -54,19 +86,11 @@
         - ""
         - "# Install tests"
         - "# Set up the WordPress installation, skipping database creation"
-        - "bash <(curl -s \"https://raw.githubusercontent.com/wp-cli/sample-plugin/master/bin/install-wp-tests.sh\") wordpress_test root root mysql latest true"
+        - "bash <(curl -s \"https://raw.githubusercontent.com/wp-cli/sample-plugin/master/bin/install-wp-tests.sh\") wordpress_test root root mariadb latest true"
         - ""
         - "# Wire up object-cache and inform WordPress config about the server location"
         - "echo 'global $memcached_servers;' >> ${WP_TESTS_DIR}/wp-tests-config.php # Notably requires setting it globally"
         - "echo '$memcached_servers = array(\"memcached:11211\");' >> ${WP_TESTS_DIR}/wp-tests-config.php # See https://github.com/Automattic/wp-memcached/blob/master/readme.txt"
-        - ""
-        - "# Ensure mu-plugins is cleared out."
-        - "rm -rf mu-plugins*"
-        - ""
-        - "# Install VIP Go MU Plugins."
-        - "# Note that these are cloned to mu-plugins-vip to prevent interference during wordpress_test installation"
-        - "# See: https://aha.alley.ws/questions/how-can-i-prevent-the-wordpress-database-error-m"
-        - "git clone --depth=1 https://github.com/Automattic/vip-go-mu-plugins-built.git mu-plugins-vip"
         - ""
         - "# Rsync wp-content to ${WP_CORE_DIR} for testing"
         - "rm -rf \"${WP_CORE_DIR}/wp-content\""
@@ -80,80 +104,35 @@
         - "# Wire up object cache."
         - "curl -s https://raw.githubusercontent.com/Automattic/wp-memcached/master/object-cache.php > ${WP_CONTENT_DIR}/object-cache.php"
         - ""
-      volume_mappings:
-        - "/:/buddy/alley-buddy-demo"
-      trigger_condition: "ALWAYS"
-      shell: "BASH"
-    - action: "phpunit theme"
-      type: "BUILD"
-      working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
-      execute_commands:
-        - "# Install database tables."
-        - "[[ $WP_MULTISITE -eq 1 ]] && WP_MULTISITE_STRING=\"run_ms_tests\" || WP_MULTISITE_STRING=\"no_ms_tests\""
-        - "php ${WP_TESTS_DIR}/includes/install.php ${WP_TESTS_DIR}/wp-tests-config.php $WP_MULTISITE_STRING"
-        - ""
-        - "# Add VIP mu plugins and config."
-        - "echo \"require_once ABSPATH . 'wp-content/vip-config/vip-config.php';\" >> ${WP_TESTS_DIR}/wp-tests-config.php"
-        - "cd ${WP_CORE_DIR}/wp-content"
-        - "mv -f mu-plugins-vip mu-plugins 2>/dev/null || echo 'mu-plugins already moved'"
-        - ""
-        - "# Kill plugins that are not very nice to PHPUnit."
-        - "rm -f mu-plugins/vaultpress.php"
-        - "rm -f mu-plugins/wordpress-importer.php"
-        - "rm -f mu-plugins/rewrite-rules-inspector.php"
-        - ""
-        - "composer phpunit:theme"
       setup_commands:
-        - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
-      services:
-        - type: "MYSQL"
-          version: "5.7"
-          connection:
-            host: "mysql"
-            port: 3306
-            user: "root"
-            password: "root"
-            db: "wordpress_test"
-        - type: "MEMCACHED"
-          version: "1.5.6"
-          connection:
-            host: "memcached"
-            port: 11211
+        - "apt update"
+        - "apt install -y rsync subversion"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
-      run_next_parallel: true
     - action: "phpunit plugin"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "# Install database tables."
         - "[[ $WP_MULTISITE -eq 1 ]] && WP_MULTISITE_STRING=\"run_ms_tests\" || WP_MULTISITE_STRING=\"no_ms_tests\""
         - "php ${WP_TESTS_DIR}/includes/install.php ${WP_TESTS_DIR}/wp-tests-config.php $WP_MULTISITE_STRING"
         - ""
-        - "# Add VIP mu plugins and config."
-        - "echo \"require_once ABSPATH . 'wp-content/vip-config/vip-config.php';\" >> ${WP_TESTS_DIR}/wp-tests-config.php"
         - "cd ${WP_CORE_DIR}/wp-content"
-        - "mv -f mu-plugins-vip mu-plugins 2>/dev/null || echo 'mu-plugins already moved'"
-        - ""
-        - "# Kill plugins that are not very nice to PHPUnit."
-        - "rm -f mu-plugins/vaultpress.php"
-        - "rm -f mu-plugins/wordpress-importer.php"
-        - "rm -f mu-plugins/rewrite-rules-inspector.php"
-        - ""
         - "composer phpunit:plugin"
       setup_commands:
+        - "apt update && apt install -y libzip-dev libmemcached-dev"
+        - "pecl install memcache-4.0.5.2 memcached redis"
         - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       services:
-        - type: "MYSQL"
-          version: "5.7"
+        - type: "MARIADB"
+          version: "10.3"
           connection:
-            host: "mysql"
+            host: "mariadb"
             port: 3306
             user: "root"
             password: "root"
@@ -167,32 +146,41 @@
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
       shell: "BASH"
-    - action: "composer phpcs: plugin"
-      type: "BUILD"
-      working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
-      execute_commands:
-        - "composer phpcs:plugin"
-      volume_mappings:
-        - "/:/buddy/alley-buddy-demo"
-      trigger_condition: "ON_CHANGE_AT_PATH"
-      trigger_condition_paths:
-        - "plugins/example-plugin"
-      shell: "BASH"
       run_next_parallel: true
-    - action: "composer phpcs: theme"
+    - action: "phpunit theme"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
-        - "composer phpcs:theme"
+        - "# Install database tables."
+        - "[[ $WP_MULTISITE -eq 1 ]] && WP_MULTISITE_STRING=\"run_ms_tests\" || WP_MULTISITE_STRING=\"no_ms_tests\""
+        - "php ${WP_TESTS_DIR}/includes/install.php ${WP_TESTS_DIR}/wp-tests-config.php $WP_MULTISITE_STRING"
+        - ""
+        - "cd ${WP_CORE_DIR}/wp-content"
+        - "composer phpunit:theme"
+      setup_commands:
+        - "apt update && apt install -y libzip-dev libmemcached-dev"
+        - "pecl install memcache-4.0.5.2 memcached redis"
+        - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
+      services:
+        - type: "MARIADB"
+          version: "10.3"
+          connection:
+            host: "mariadb"
+            port: 3306
+            user: "root"
+            password: "root"
+            db: "wordpress_test"
+        - type: "MEMCACHED"
+          version: "1.5.6"
+          connection:
+            host: "memcached"
+            port: 11211
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
-      trigger_condition: "ON_CHANGE_AT_PATH"
-      trigger_condition_paths:
-        - "themes/example-theme"
+      trigger_condition: "ALWAYS"
       shell: "BASH"
     - action: "npm audit: plugin"
       type: "BUILD"
@@ -250,7 +238,7 @@
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/examle-plugin"
+        - "cd plugins/example-plugin"
         - "npm run lint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
@@ -265,13 +253,13 @@
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/example-theme"
+        - "cd themes/example-theme"
         - "npm run lint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/example-theme"
+        - "themes/example-theme"
       shell: "BASH"
     - action: "npm run stylelint: plugin"
       type: "BUILD"
@@ -294,13 +282,13 @@
       docker_image_name: "library/node"
       docker_image_tag: "16"
       execute_commands:
-        - "cd plugins/example-theme"
+        - "cd themes/example-theme"
         - "npm run stylelint"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
-        - "plugins/example-theme"
+        - "themes/example-theme"
       shell: "BASH"
     - action: "npm run test: plugin"
       type: "BUILD"
@@ -315,6 +303,21 @@
       trigger_condition: "ON_CHANGE_AT_PATH"
       trigger_condition_paths:
         - "plugins/example-plugin"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "npm run test: theme"
+      type: "BUILD"
+      working_directory: "/buddy/alley-buddy-demo"
+      docker_image_name: "library/node"
+      docker_image_tag: "16"
+      execute_commands:
+        - "cd themes/example-theme"
+        - "npm run test"
+      volume_mappings:
+        - "/:/buddy/alley-buddy-demo"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "themes/example-theme"
       shell: "BASH"
     - action: "npm run build: plugin"
       type: "BUILD"
