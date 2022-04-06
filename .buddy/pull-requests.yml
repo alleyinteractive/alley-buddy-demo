@@ -44,6 +44,37 @@
       trigger_condition: "ALWAYS"
       shell: "BASH"
       run_next_parallel: true
+    - action: "composer phpcs: plugin"
+      type: "BUILD"
+      working_directory: "/buddy/alley-buddy-demo"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
+      execute_commands:
+        - "composer phpcs:plugin"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
+      volume_mappings:
+        - "/:/buddy/alley-buddy-demo"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "plugins/example-plugin"
+      shell: "BASH"
+      run_next_parallel: true
+    - action: "composer phpcs: theme"
+      type: "BUILD"
+      working_directory: "/buddy/alley-buddy-demo"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
+      execute_commands:
+        - "composer phpcs:theme"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
+      volume_mappings:
+        - "/:/buddy/alley-buddy-demo"
+      trigger_condition: "ON_CHANGE_AT_PATH"
+      trigger_condition_paths:
+        - "themes/example-theme"
+      shell: "BASH"
     - action: "Prepare WordPress test environment"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
@@ -149,37 +180,6 @@
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
-      shell: "BASH"
-    - action: "composer phpcs: plugin"
-      type: "BUILD"
-      working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "library/wordpress"
-      docker_image_tag: "latest"
-      execute_commands:
-        - "composer phpcs:plugin"
-      setup_commands:
-        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
-      volume_mappings:
-        - "/:/buddy/alley-buddy-demo"
-      trigger_condition: "ON_CHANGE_AT_PATH"
-      trigger_condition_paths:
-        - "plugins/example-plugin"
-      shell: "BASH"
-      run_next_parallel: true
-    - action: "composer phpcs: theme"
-      type: "BUILD"
-      working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "library/wordpress"
-      docker_image_tag: "latest"
-      execute_commands:
-        - "composer phpcs:theme"
-      setup_commands:
-        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
-      volume_mappings:
-        - "/:/buddy/alley-buddy-demo"
-      trigger_condition: "ON_CHANGE_AT_PATH"
-      trigger_condition_paths:
-        - "themes/example-theme"
       shell: "BASH"
     - action: "npm audit: plugin"
       type: "BUILD"
