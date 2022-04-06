@@ -23,7 +23,6 @@ require_once $example_theme_tests_dir . '/includes/functions.php'; // phpcs:igno
 function example_theme_manually_load_environment() {
 	// Set our theme.
 	switch_theme( 'example-theme' );
-	require_once dirname( __DIR__ ) . '/functions.php';
 
 	/*
 	 * Tests won't start until the uploads directory is scanned, so use the
