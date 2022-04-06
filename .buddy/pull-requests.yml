@@ -37,6 +37,8 @@
       docker_image_tag: "latest"
       execute_commands:
         - "composer install -q"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ALWAYS"
@@ -90,6 +92,7 @@
         - "composer phpunit:theme"
       setup_commands:
         - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       services:
         - type: "MARIADB"
           version: "10.3"
@@ -123,6 +126,7 @@
         - "composer phpunit:plugin"
       setup_commands:
         - "echo \"extension=memcache.so\" >> /usr/local/etc/php/conf.d/buddy.ini"
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       services:
         - type: "MARIADB"
           version: "10.3"
@@ -148,6 +152,8 @@
       docker_image_tag: "latest"
       execute_commands:
         - "composer phpcs:plugin"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
@@ -162,6 +168,8 @@
       docker_image_tag: "latest"
       execute_commands:
         - "composer phpcs:theme"
+      setup_commands:
+        - "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
       volume_mappings:
         - "/:/buddy/alley-buddy-demo"
       trigger_condition: "ON_CHANGE_AT_PATH"
