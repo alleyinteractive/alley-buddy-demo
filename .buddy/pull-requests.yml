@@ -11,8 +11,8 @@
     - action: "Gitignored files check"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "if [[ ! -z $(git ls-files -i --exclude-standard) ]]; then exit 1; fi"
       volume_mappings:
@@ -22,8 +22,8 @@
     - action: "Check for git conflicts"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "! git grep -E \"<<<<<<< |>>>>>>> \" -- './*' ':!buddy.yml' ':!.buddy/*'"
       volume_mappings:
@@ -33,8 +33,8 @@
     - action: "Composer install"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "composer install -q"
       volume_mappings:
@@ -45,8 +45,8 @@
     - action: "Prepare WordPress test environment"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "# Clear out any previously cached testing folders."
         - "rm -rf .buddy-tests; mkdir -p .buddy-tests"
@@ -79,8 +79,8 @@
     - action: "phpunit theme"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "# Install database tables."
         - "[[ $WP_MULTISITE -eq 1 ]] && WP_MULTISITE_STRING=\"run_ms_tests\" || WP_MULTISITE_STRING=\"no_ms_tests\""
@@ -112,8 +112,8 @@
     - action: "phpunit plugin"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "# Install database tables."
         - "[[ $WP_MULTISITE -eq 1 ]] && WP_MULTISITE_STRING=\"run_ms_tests\" || WP_MULTISITE_STRING=\"no_ms_tests\""
@@ -144,8 +144,8 @@
     - action: "composer phpcs: plugin"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "composer phpcs:plugin"
       volume_mappings:
@@ -158,8 +158,8 @@
     - action: "composer phpcs: theme"
       type: "BUILD"
       working_directory: "/buddy/alley-buddy-demo"
-      docker_image_name: "alleyops/ci-resources"
-      docker_image_tag: "7.4-fpm-wp"
+      docker_image_name: "library/wordpress"
+      docker_image_tag: "latest"
       execute_commands:
         - "composer phpcs:theme"
       volume_mappings:
