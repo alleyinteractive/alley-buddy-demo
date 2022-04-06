@@ -17,3 +17,7 @@ To get started with Buddy:
     * Once you've configured any project-specific paths (eg. to plugins or themes), be sure to remove the `disabled: true` line for any actions you would like to run within your project.
 	* Configure the Slack integration. You will need both the channel ID and the channel name. The channel ID can be obtained by configuring an action in Buddy's GUI and configuring the Slack notification for your channel of choice, then viewing the YAML for the action and copying the ID. Alternately, if you have a notification going to that channel already, you can copy it out of that project's configuration.
 * When you are done, you should be able to push your branch, create a pull request against the `production` branch, and Buddy should run the configuration in your `.buddy/pull-requests.yml` file automatically. Once this happens and is successful, configure branch protections to require the Buddy task to pass.
+
+## Like What You See?
+
+We're hiring! Please visit us at https://alley.co/careers/ to apply.
